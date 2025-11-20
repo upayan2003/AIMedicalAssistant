@@ -14,7 +14,7 @@ from langchain_core.prompts import ChatPromptTemplate
 
 # --- PAGE CONFIGURATION (Must be first!) ---
 st.set_page_config(
-    page_title="MedBot AI",
+    page_title="Vitalis AI",
     page_icon="🩺",
     layout="wide"
 )
@@ -75,7 +75,7 @@ with st.sidebar:
         st.rerun()
 
 # --- MAIN CONTENT ---
-st.title("🩺 MedBot AI")
+st.title("🩺 Vitalis AI")
 st.subheader("An intelligent medical assistant powered by Llama 3.3 and RAG")
 st.divider()
 st.write("Describe your symptoms below to find similar past cases and advice.")
