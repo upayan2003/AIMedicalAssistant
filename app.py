@@ -30,33 +30,44 @@ PERSIST_DIR = "./chroma_db_groq"
 
 @st.cache_resource
 def load_medical_knowledge():
-    # We use HuggingFace for Embeddings (Runs locally on your CPU = FREE)
+    # Using HuggingFace Embeddings (Runs locally on your CPU = FREE)
     embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
     if os.path.exists(PERSIST_DIR):
+        print("Loading existing vector store...")
         vectorstore = Chroma(persist_directory=PERSIST_DIR, embedding_function=embeddings)
     else:
-        # 1. Load Data
-        if not os.path.exists("medical_data.csv"):
-            st.error("Data file not found. Please ensure 'medical_data.csv' is in the directory.")
-            return None
-
-        df = pd.read_csv("medical_data.zip")
-        df["combined_text"] = "Patient: " + df["Patient"].astype(str) + "\nDoctor: " + df["Doctor"].astype(str)
+        print("Downloading and indexing new data from Hugging Face...")
         
-        loader = DataFrameLoader(df, page_content_column="combined_text")
-        documents = loader.load()
+        # --- LOAD FROM HUGGING FACE URL ---
+        url = "https://huggingface.co/datasets/ruslanmv/ai-medical-chatbot/resolve/main/dialogues.parquet?download=true"
+        
+        try:
+            # Pandas can read directly from a URL!
+            df = pd.read_parquet(url)
+            
+            # Combine columns for context
+            # Using 'Patient' and 'Doctor' columns as per your dataset structure
+            df["combined_text"] = "Patient: " + df["Patient"].astype(str) + "\nDoctor: " + df["Doctor"].astype(str)
+            
+            # Load into LangChain
+            loader = DataFrameLoader(df, page_content_column="combined_text")
+            documents = loader.load()
 
-        # 2. Split
-        text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
-        splits = text_splitter.split_documents(documents)
+            # Split text
+            text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+            splits = text_splitter.split_documents(documents)
 
-        # 3. Embed & Store
-        vectorstore = Chroma.from_documents(
-            documents=splits, 
-            embedding=embeddings, # Using free local embeddings
-            persist_directory=PERSIST_DIR
-        )
+            # Create Vector Store
+            vectorstore = Chroma.from_documents(
+                documents=splits, 
+                embedding=embeddings,
+                persist_directory=PERSIST_DIR
+            )
+            
+        except Exception as e:
+            st.error(f"Failed to load dataset from Hugging Face: {str(e)}")
+            return None
 
     return vectorstore.as_retriever(search_kwargs={"k": 3})
 
@@ -146,4 +157,5 @@ if user_input := st.chat_input("Type your symptoms here (e.g., 'severe headache 
     
     # Add assistant message to chat history
     st.session_state.messages.append({"role": "assistant", "content": bot_reply})
+
 
