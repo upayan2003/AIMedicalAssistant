@@ -41,7 +41,7 @@ def load_medical_knowledge():
             st.error("Data file not found. Please ensure 'medical_data.csv' is in the directory.")
             return None
 
-        df = pd.read_csv("medical_data.csv")
+        df = pd.read_csv("medical_data.zip")
         df["combined_text"] = "Patient: " + df["Patient"].astype(str) + "\nDoctor: " + df["Doctor"].astype(str)
         
         loader = DataFrameLoader(df, page_content_column="combined_text")
@@ -146,3 +146,4 @@ if user_input := st.chat_input("Type your symptoms here (e.g., 'severe headache 
     
     # Add assistant message to chat history
     st.session_state.messages.append({"role": "assistant", "content": bot_reply})
+
