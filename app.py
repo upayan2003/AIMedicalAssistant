@@ -40,7 +40,7 @@ def load_medical_knowledge():
         print("Downloading and indexing new data from Hugging Face...")
         
         # --- LOAD FROM HUGGING FACE URL ---
-        url = "https://huggingface.co/datasets/ruslanmv/ai-medical-chatbot/resolve/main/dialogues.parquet?download=true"
+        url = "https://huggingface.co/datasets/ruslanmv/ai-medical-chatbot/resolve/main/dialogues.parquet"
         
         try:
             # Pandas can read directly from a URL!
@@ -157,5 +157,6 @@ if user_input := st.chat_input("Type your symptoms here (e.g., 'severe headache 
     
     # Add assistant message to chat history
     st.session_state.messages.append({"role": "assistant", "content": bot_reply})
+
 
 
